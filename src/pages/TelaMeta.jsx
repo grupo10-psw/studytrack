@@ -3,8 +3,9 @@ import { useState } from 'react'
 import useStore from '../store/useStore'
 
 export default function TelaMeta() {
-  const { materias, metas, addMeta } = useStore()
+  const { materias, metas, addMeta, updateMeta, deleteMeta } = useStore()
 
+  const [editId,   setEditId]   = useState(null)
   const [materiaId, setMateriaId] = useState('')
   const [periodo,   setPeriodo]   = useState('Semanal')
   const [inicio,    setInicio]    = useState('2025-06-01')
@@ -12,14 +13,58 @@ export default function TelaMeta() {
   const [horas,     setHoras]     = useState(8)
   const [msg,       setMsg]       = useState('')
 
-  const matSel = materias.find((m) => m.id === +materiaId)
+  const matSel = materias.find((m) => String(m.id) === String(materiaId))
   const pl = { Diário: 'hoje', Semanal: 'esta semana', Mensal: 'este mês' }
   const fdate = (d) => { if (!d) return '?'; const [y,mo,dd] = d.split('-'); return `${dd}/${mo}/${y}` }
 
+  function limparForm(resetMsg = true) {
+    setEditId(null)
+    setMateriaId('')
+    setPeriodo('Semanal')
+    setInicio('2025-06-01')
+    setFim('2025-06-07')
+    setHoras(8)
+    if (resetMsg) setMsg('')
+  }
+
+  function editarMeta(mt) {
+    setEditId(mt.id)
+    setMateriaId(String(mt.materiaId ?? ''))
+    setPeriodo(mt.periodo || 'Semanal')
+    setInicio(mt.inicio || '2025-06-01')
+    setFim(mt.fim || '2025-06-07')
+    setHoras(Number(mt.horas || 1))
+    setMsg('✏️ Editando meta...')
+  }
+
+  async function excluirMeta(id) {
+    if (!window.confirm('Excluir esta meta?')) return
+    await deleteMeta(id)
+    if (String(editId) === String(id)) limparForm(false)
+    setMsg('🗑️ Meta excluída com sucesso!')
+    setTimeout(() => setMsg(''), 3000)
+  }
+
   async function salvar() {
     if (!materiaId) { setMsg('⚠️ Selecione a matéria.'); return }
-    await addMeta({ materiaId: +materiaId, horas, periodo, inicio, fim })
-    setMsg('✅ Meta salva com sucesso!')
+
+    const payload = {
+      materiaId: String(materiaId),
+      horas: Number(horas),
+      periodo,
+      inicio,
+      fim,
+    }
+
+    if (editId) {
+      await updateMeta(editId, payload)
+      limparForm(false)
+      setMsg('✅ Meta atualizada com sucesso!')
+    } else {
+      await addMeta(payload)
+      limparForm(false)
+      setMsg('✅ Meta salva com sucesso!')
+    }
     setTimeout(() => setMsg(''), 3000)
   }
 
@@ -33,13 +78,17 @@ export default function TelaMeta() {
           <div className="card">
             <div className="card-title">Metas Ativas</div>
             {metas.map((mt) => {
-              const m = materias.find((x) => x.id === mt.materiaId)
+              const m = materias.find((x) => String(x.id) === String(mt.materiaId))
               if (!m) return null
               return (
                 <div key={mt.id} className="mat-item">
                   <div className="dot" style={{ background: m.cor }} />
                   <div style={{ flex: 1 }} className="fw600 text-sm">{m.nome}</div>
                   <div className="text-xs text-primary fw700">{mt.horas}h · {mt.periodo}</div>
+                  <div className="row-actions" style={{ marginTop: 0, marginLeft: 8 }}>
+                    <button className="btn-mini edit" onClick={() => editarMeta(mt)}>Editar</button>
+                    <button className="btn-mini delete" onClick={() => excluirMeta(mt.id)}>Excluir</button>
+                  </div>
                 </div>
               )
             })}
@@ -101,8 +150,10 @@ export default function TelaMeta() {
         </div>
 
         {msg && <div className="alert">{msg}</div>}
-        <button className="btn-primary" onClick={salvar}>Salvar Meta</button>
-        <button className="btn-ghost">Cancelar</button>
+        <button className="btn-primary" onClick={salvar}>
+          {editId ? 'Atualizar Meta' : 'Salvar Meta'}
+        </button>
+        <button className="btn-ghost" onClick={() => limparForm()}>Cancelar</button>
       </div>
     </>
   )

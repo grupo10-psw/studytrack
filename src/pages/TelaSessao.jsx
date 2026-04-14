@@ -16,8 +16,9 @@ function fmtDur(m) {
 function fdate(d) { if (!d) return '?'; const [y,mo,dd] = d.split('-'); return `${dd}/${mo}/${y}` }
 
 export default function TelaSessao() {
-  const { materias, sessoes, metas, addSessao } = useStore()
+  const { materias, sessoes, metas, addSessao, updateSessao, deleteSessao } = useStore()
 
+  const [editId,    setEditId]    = useState(null)
   const [materiaId, setMateriaId] = useState('')
   const [data,      setData]      = useState('2025-06-03')
   const [inicio,    setInicio]    = useState('14:00')
@@ -25,19 +26,57 @@ export default function TelaSessao() {
   const [obs,       setObs]       = useState('')
   const [msg,       setMsg]       = useState('')
 
-  const durMin  = calcMin(inicio, fim)
-  const mat     = materias.find((m) => m.id === +materiaId)
-  const metaAt  = metas.find((mt) => mt.materiaId === +materiaId)
+  const durMin = calcMin(inicio, fim)
+  const mat    = materias.find((m) => String(m.id) === String(materiaId))
+  const metaAt = metas.find((mt) => String(mt.materiaId) === String(materiaId))
   const horasJa = sessoes
-    .filter((s) => s.materiaId === +materiaId)
+    .filter((s) => String(s.materiaId) === String(materiaId))
     .reduce((a, s) => a + Math.max(0, calcMin(s.inicio, s.fim) / 60), 0)
   const pct = metaAt ? Math.min(100, Math.round((horasJa / metaAt.horas) * 100)) : 0
+
+  function limparForm(resetMsg = true) {
+    setEditId(null)
+    setMateriaId('')
+    setData('2025-06-03')
+    setInicio('14:00')
+    setFim('16:30')
+    setObs('')
+    if (resetMsg) setMsg('')
+  }
+
+  function editarSessao(s) {
+    setEditId(s.id)
+    setMateriaId(String(s.materiaId ?? ''))
+    setData(s.data || '2025-06-03')
+    setInicio(s.inicio || '14:00')
+    setFim(s.fim || '16:30')
+    setObs(s.obs || '')
+    setMsg('✏️ Editando sessão...')
+  }
+
+  async function excluirSessao(id) {
+    if (!window.confirm('Excluir esta sessão?')) return
+    await deleteSessao(id)
+    if (String(editId) === String(id)) limparForm(false)
+    setMsg('🗑️ Sessão excluída com sucesso!')
+    setTimeout(() => setMsg(''), 3000)
+  }
 
   async function salvar() {
     if (!materiaId) { setMsg('⚠️ Selecione a matéria.'); return }
     if (durMin <= 0) { setMsg('⚠️ Horário inválido.'); return }
-    await addSessao({ materiaId: +materiaId, data, inicio, fim, obs })
-    setMsg('✅ Sessão registrada com sucesso!')
+
+    const payload = { materiaId: String(materiaId), data, inicio, fim, obs }
+
+    if (editId) {
+      await updateSessao(editId, payload)
+      limparForm(false)
+      setMsg('✅ Sessão atualizada com sucesso!')
+    } else {
+      await addSessao(payload)
+      limparForm(false)
+      setMsg('✅ Sessão registrada com sucesso!')
+    }
     setTimeout(() => setMsg(''), 3000)
   }
 
@@ -51,16 +90,20 @@ export default function TelaSessao() {
           <div className="card">
             <div className="card-title">Sessões Recentes</div>
             {[...sessoes].reverse().slice(0, 3).map((s) => {
-              const m = materias.find((x) => x.id === s.materiaId)
+              const m = materias.find((x) => String(x.id) === String(s.materiaId))
               if (!m) return null
               return (
-                <div key={s.id} className="mat-item">
+                <div key={s.id} className="mat-item" style={{ flexWrap: 'wrap' }}>
                   <div className="dot" style={{ background: m.cor }} />
                   <div style={{ flex: 1 }}>
                     <div className="fw700 text-sm">{m.nome}</div>
                     <div className="text-xs text-muted">{fdate(s.data)} · {s.inicio}–{s.fim}</div>
                   </div>
                   <div className="fw800 text-primary text-sm">{fmtDur(calcMin(s.inicio, s.fim))}</div>
+                  <div className="row-actions" style={{ width: '100%', marginTop: 6 }}>
+                    <button className="btn-mini edit" onClick={() => editarSessao(s)}>Editar</button>
+                    <button className="btn-mini delete" onClick={() => excluirSessao(s.id)}>Excluir</button>
+                  </div>
                 </div>
               )
             })}
@@ -92,7 +135,9 @@ export default function TelaSessao() {
           </div>
           <div className="dur-box">
             <div>
-              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--primary)' }}>{durMin > 0 ? fmtDur(durMin) : 'Inválido'}</div>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--primary)' }}>
+                {durMin > 0 ? fmtDur(durMin) : 'Inválido'}
+              </div>
               <div className="text-xs text-muted">duração calculada</div>
             </div>
             <span style={{ marginLeft: 'auto', fontSize: '1.3rem' }}>{durMin > 0 ? '✅' : '⚠️'}</span>
@@ -117,12 +162,15 @@ export default function TelaSessao() {
 
         <div className="card">
           <div className="card-title">Observações</div>
-          <textarea value={obs} onChange={(e) => setObs(e.target.value)} rows={3} placeholder="Ex: Revisei integrais por substituição..." />
+          <textarea value={obs} onChange={(e) => setObs(e.target.value)} rows={3}
+            placeholder="Ex: Revisei integrais por substituição..." />
         </div>
 
         {msg && <div className="alert">{msg}</div>}
-        <button className="btn-primary" onClick={salvar}>Registrar Sessão</button>
-        <button className="btn-ghost">Cancelar</button>
+        <button className="btn-primary" onClick={salvar}>
+          {editId ? 'Atualizar Sessão' : 'Registrar Sessão'}
+        </button>
+        <button className="btn-ghost" onClick={() => limparForm()}>Cancelar</button>
       </div>
     </>
   )

@@ -1,0 +1,55 @@
+/* src/App.css */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --primary: #1F3C88;
+  --light:   #3A6FD8;
+  --bg:      #F0F4FF;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  padding-bottom: 76px;
+}
+
+.app { max-width: 480px; margin: 0 auto; position: relative; }
+
+/* ── Loading / Error ── */
+.loading-bar { background: var(--light); color: #fff; text-align: center; padding: 8px; font-size: .85rem; font-weight: 700; }
+.error-bar   { background: #E84855;      color: #fff; text-align: center; padding: 8px; font-size: .82rem; font-weight: 600; }
+
+/* ── Navbar ── */
+.navbar { background: var(--primary); color: #fff; padding: 12px 16px; display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 200; }
+.navbar-title { font-weight: 800; font-size: 1.05rem; flex: 1; }
+
+/* ── Cards ── */
+.card { background: #fff; border-radius: 12px; padding: 16px; margin: 12px 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+.card-title { font-weight: 800; font-size: .95rem; margin-bottom: 12px; color: #333; }
+.pad { padding: 0; }
+
+/* ── Inputs e Botões ── */
+input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; margin-bottom: 8px; }
+.btn-primary { width: calc(100% - 28px); margin: 0 14px 10px; padding: 14px; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; }
+.btn-ghost { width: calc(100% - 28px); margin: 0 14px 20px; padding: 12px; background: none; color: #666; border: none; font-weight: 600; cursor: pointer; }
+
+/* ── Itens e Progresso ── */
+.mat-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.prog-track { height: 8px; background: #eee; border-radius: 4px; margin: 6px 0; overflow: hidden; }
+.prog-fill { height: 100%; }
+
+/* ── Bottom nav ── */
+.bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: #fff; border-top: 1px solid #dee2e6; display: flex; z-index: 300; }
+.nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 8px 4px 10px; color: #aaa; font-size: .62rem; font-weight: 700; gap: 2px; cursor: pointer; border: none; background: none; font-family: inherit; }
+.nav-btn.active { color: var(--primary); }
+.nav-icon { font-size: 1.25rem; }
+
+/* ── Utilitários ── */
+.fw700 { font-weight: 700; }
+.fw800 { font-weight: 800; }
+.text-sm { font-size: .85rem; }
+.text-muted { color: #888; }
+.text-primary { color: var(--primary); }
+.alert { background: #EEF3FF; border-radius: 10px; padding: 10px 14px; margin: 0 14px 10px; font-size: .88rem; color: var(--primary); font-weight: 600; }

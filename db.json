@@ -1,0 +1,121 @@
+{
+  "materias": [
+    {
+      "id": "1",
+      "nome": "Cálculo II",
+      "cor": "#3A6FD8",
+      "desc": "Integrais, derivadas parciais",
+      "horas": 6,
+      "periodo": "Semana"
+    },
+    {
+      "id": "2",
+      "nome": "Algoritmos",
+      "cor": "#2DC653",
+      "desc": "Estruturas de dados",
+      "horas": 8,
+      "periodo": "Semana"
+    },
+    {
+      "id": "3",
+      "nome": "Física III",
+      "cor": "#E84855",
+      "desc": "Eletromagnetismo",
+      "horas": 6,
+      "periodo": "Semana"
+    },
+    {
+      "id": "4",
+      "nome": "Banco de Dados",
+      "cor": "#F4A21B",
+      "desc": "SQL e modelagem",
+      "horas": 4,
+      "periodo": "Semana"
+    },
+    {
+      "nome": "Matemática Discreta",
+      "cor": "#3A6FD8",
+      "desc": "Diagrama de Hasse, Conjuntos, Teoria dos Conjuntos...",
+      "horas": 6,
+      "periodo": "Semana",
+      "id": "dyJlPfYVXrA"
+    }
+  ],
+  "sessoes": [
+    {
+      "id": "1",
+      "materiaId": 1,
+      "data": "2025-06-03",
+      "inicio": "14:00",
+      "fim": "16:30",
+      "obs": "Revisei integrais"
+    },
+    {
+      "id": "2",
+      "materiaId": 2,
+      "data": "2025-06-02",
+      "inicio": "19:00",
+      "fim": "21:00",
+      "obs": ""
+    },
+    {
+      "id": "3",
+      "materiaId": 3,
+      "data": "2025-06-01",
+      "inicio": "10:00",
+      "fim": "11:30",
+      "obs": ""
+    },
+    {
+      "materiaId": null,
+      "data": "2025-06-03",
+      "inicio": "14:00",
+      "fim": "16:30",
+      "obs": "",
+      "id": "NuMdZaVE2L8"
+    }
+  ],
+  "metas": [
+    {
+      "id": "1",
+      "materiaId": 1,
+      "horas": 10,
+      "periodo": "Semanal",
+      "inicio": "2025-06-01",
+      "fim": "2025-06-07"
+    },
+    {
+      "id": "2",
+      "materiaId": 2,
+      "horas": 8,
+      "periodo": "Semanal",
+      "inicio": "2025-06-01",
+      "fim": "2025-06-07"
+    },
+    {
+      "id": "3",
+      "materiaId": 3,
+      "horas": 12,
+      "periodo": "Semanal",
+      "inicio": "2025-06-01",
+      "fim": "2025-06-07"
+    },
+    {
+      "id": "4",
+      "materiaId": 4,
+      "horas": 6,
+      "periodo": "Semanal",
+      "inicio": "2025-06-01",
+      "fim": "2025-06-07"
+    },
+    {
+      "materiaId": null,
+      "horas": 8,
+      "periodo": "Semanal",
+      "inicio": "2025-06-01",
+      "fim": "2025-06-07",
+      "id": "_7iO_HWB3dg"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}

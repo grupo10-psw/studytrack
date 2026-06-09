@@ -1,20 +1,24 @@
 export default function BottomNav({ tela, setTela }) {
   const items = [
-    { key: 'materias',  icon: '📚', label: 'Matérias'  },
-    { key: 'sessao',    icon: '⏱️', label: 'Sessões'   },
-    { key: 'meta',      icon: '🎯', label: 'Metas'     },
-    { key: 'relatorio', icon: '📊', label: 'Progresso' }, // ← foi pro final
+    { id: 'materias', label: 'Matérias', icon: '📚' },
+    { id: 'sessao', label: 'Sessões', icon: '⏱️' },
+    { id: 'meta', label: 'Metas', icon: '🎯' },
+    { id: 'relatorio', label: 'Progresso', icon: '📊' },
   ]
+
   return (
-    <nav className="bottom-nav">
-      {items.map((i) => (
+    <nav className="bottom-nav" aria-label="Navegação principal">
+      {items.map((item) => (
         <button
-          key={i.key}
-          className={`nav-btn ${tela === i.key ? 'active' : ''}`}
-          onClick={() => setTela(i.key)}
+          key={item.id}
+          type="button"
+          className={`nav-btn ${tela === item.id ? 'active' : ''}`}
+          onClick={() => setTela(item.id)}
+          aria-label={item.label}
+          aria-current={tela === item.id ? 'page' : undefined}
         >
-          <span className="nav-icon">{i.icon}</span>
-          {i.label}
+          <span className="nav-icon">{item.icon}</span>
+          <span className="nav-label">{item.label}</span>
         </button>
       ))}
     </nav>

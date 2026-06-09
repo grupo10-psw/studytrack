@@ -1,33 +1,57 @@
-// src/App.jsx
-import { useState, useEffect } from 'react'
-import useStore from './store/useStore'
-import TelaMaterias from './pages/TelaMaterias'
-import TelaMeta from './pages/TelaMeta'
-import TelaSessao from './pages/TelaSessao'
-import TelaRelatorio from './pages/TelaRelatorio'
-import BottomNav from './components/BottomNav'
+import { useEffect, useState } from 'react'
 import './App.css'
 
+import useStore from './store/useStore'
+import BottomNav from './components/BottomNav'
+import AuthScreen from './components/AuthScreen'
+
+import TelaMaterias from './pages/TelaMaterias'
+import TelaSessao from './pages/TelaSessao'
+import TelaMeta from './pages/TelaMeta'
+import TelaRelatorio from './pages/TelaRelatorio'
+
 export default function App() {
-  const [tela, setTela] = useState('relatorio')
-  const { fetchAll, loading, error } = useStore()
+  const [tela, setTela] = useState('materias')
+
+  const {
+    user,
+    loading,
+    error,
+    fetchAll,
+    logout,
+  } = useStore()
 
   useEffect(() => {
-    fetchAll()
-  }, [])
+    if (user) {
+      fetchAll()
+    }
+  }, [user, fetchAll])
+
+  if (!user) {
+    return <AuthScreen />
+  }
 
   return (
     <div className="app">
+      <header className="navbar">
+        <div className="navbar-title">StudyTrack</div>
+        <button className="navbar-action" onClick={logout}>
+          Sair
+        </button>
+      </header>
+
       {loading && (
-        <div className="loading-bar">Carregando dados…</div>
-      )}
-      {error && (
-        <div className="error-bar">{error} — verifique se o json-server está rodando.</div>
+        <div className="loading-bar">
+          <span className="spinner" />
+          Carregando...
+        </div>
       )}
 
-      {tela === 'materias'  && <TelaMaterias />}
-      {tela === 'meta'      && <TelaMeta />}
-      {tela === 'sessao'    && <TelaSessao />}
+      {error && <div className="error-bar">{error}</div>}
+
+      {tela === 'materias' && <TelaMaterias />}
+      {tela === 'sessao' && <TelaSessao />}
+      {tela === 'meta' && <TelaMeta />}
       {tela === 'relatorio' && <TelaRelatorio />}
 
       <BottomNav tela={tela} setTela={setTela} />

@@ -5,10 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "server": "json-server --watch db.json --port 3001",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "server": "cd backend && node --watch server.js",
+    "build": "vite build"
   },
   "dependencies": {
     "react": "^19.2.4",
@@ -25,11 +23,7 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
     "json-server": "^1.0.0-beta.15",
+    "mocha": "^11.7.6",
     "vite": "^8.0.4"
-  },
-  "scripts": {
-  "dev":    "vite",
-  "server": "cd backend && node --watch server.js",
-  "build":  "vite build"
-}
+  }
 }

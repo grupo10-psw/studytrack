@@ -1,10 +1,9 @@
-// src/components/BottomNav.jsx
 export default function BottomNav({ tela, setTela }) {
   const items = [
     { key: 'materias',  icon: '📚', label: 'Matérias'  },
     { key: 'sessao',    icon: '⏱️', label: 'Sessões'   },
-    { key: 'relatorio', icon: '📊', label: 'Progresso' },
     { key: 'meta',      icon: '🎯', label: 'Metas'     },
+    { key: 'relatorio', icon: '📊', label: 'Progresso' }, // ← foi pro final
   ]
   return (
     <nav className="bottom-nav">

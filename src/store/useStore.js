@@ -1,134 +1,142 @@
-// src/store/useStore.js
 import { create } from 'zustand'
 
 const API = 'http://localhost:3001'
-const sameId = (a, b) => String(a) === String(b)
 
-async function getJson(url, options) {
+async function getJson(url, options = {}) {
   const res = await fetch(url, options)
-  if (!res.ok) throw new Error('Erro na requisição')
-  return res.status === 204 ? null : res.json()
+
+  if (!res.ok) {
+    throw new Error('Erro na requisição')
+  }
+
+  if (res.status === 204) return null
+  return await res.json()
 }
 
-const useStore = create((set, get) => ({
+const useStore = create((set) => ({
   materias: [],
   sessoes: [],
   metas: [],
   loading: false,
   error: null,
 
-  // ─── CARREGAR TUDO ───────────────────────────────────────────────
   fetchAll: async () => {
     set({ loading: true, error: null })
+
     try {
       const [materias, sessoes, metas] = await Promise.all([
         getJson(`${API}/materias`),
         getJson(`${API}/sessoes`),
         getJson(`${API}/metas`),
       ])
+
       set({ materias, sessoes, metas, loading: false })
     } catch {
       set({ error: 'Erro ao conectar com o servidor.', loading: false })
     }
   },
 
-  // ─── MATÉRIAS ────────────────────────────────────────────────────
-  addMateria: async (novaMateria) => {
+  // ── Matérias ─────────────────────────────
+  addMateria: async (nova) => {
     const saved = await getJson(`${API}/materias`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(novaMateria),
+      body: JSON.stringify(nova),
     })
-    set((state) => ({ materias: [...state.materias, saved] }))
+
+    set((s) => ({ materias: [...s.materias, saved] }))
+    return saved
   },
 
-  updateMateria: async (id, payload) => {
+  updateMateria: async (id, dados) => {
     const saved = await getJson(`${API}/materias/${id}`, {
-      method: 'PATCH',
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(dados),
     })
-    set((state) => ({
-      materias: state.materias.map((m) => (sameId(m.id, id) ? saved : m)),
+
+    set((s) => ({
+      materias: s.materias.map((m) => (m._id === id ? saved : m)),
     }))
+
+    return saved
   },
 
   deleteMateria: async (id) => {
-    const { sessoes, metas } = get()
+    await getJson(`${API}/materias/${id}`, { method: 'DELETE' })
 
-    const sessoesRelacionadas = sessoes.filter((s) => sameId(s.materiaId, id))
-    const metasRelacionadas   = metas.filter((m) => sameId(m.materiaId, id))
-
-    await Promise.all([
-      ...sessoesRelacionadas.map((s) =>
-        fetch(`${API}/sessoes/${s.id}`, { method: 'DELETE' })
-      ),
-      ...metasRelacionadas.map((m) =>
-        fetch(`${API}/metas/${m.id}`, { method: 'DELETE' })
-      ),
-      fetch(`${API}/materias/${id}`, { method: 'DELETE' }),
-    ])
-
-    set((state) => ({
-      materias: state.materias.filter((m) => !sameId(m.id, id)),
-      sessoes:  state.sessoes.filter((s) => !sameId(s.materiaId, id)),
-      metas:    state.metas.filter((m) => !sameId(m.materiaId, id)),
+    set((s) => ({
+      materias: s.materias.filter((m) => m._id !== id),
+      sessoes: s.sessoes.filter((sessao) => sessao.materiaId !== id),
+      metas: s.metas.filter((mt) => mt.materiaId !== id),
     }))
   },
 
-  // ─── SESSÕES ─────────────────────────────────────────────────────
-  addSessao: async (novaSessao) => {
+  // ── Sessões ──────────────────────────────
+  addSessao: async (nova) => {
     const saved = await getJson(`${API}/sessoes`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(novaSessao),
+      body: JSON.stringify(nova),
     })
-    set((state) => ({ sessoes: [...state.sessoes, saved] }))
+
+    set((s) => ({ sessoes: [saved, ...s.sessoes] }))
+    return saved
   },
 
-  updateSessao: async (id, payload) => {
+  updateSessao: async (id, dados) => {
     const saved = await getJson(`${API}/sessoes/${id}`, {
-      method: 'PATCH',
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(dados),
     })
-    set((state) => ({
-      sessoes: state.sessoes.map((s) => (sameId(s.id, id) ? saved : s)),
+
+    set((s) => ({
+      sessoes: s.sessoes.map((sessao) => (sessao._id === id ? saved : sessao)),
     }))
+
+    return saved
   },
 
   deleteSessao: async (id) => {
-    await fetch(`${API}/sessoes/${id}`, { method: 'DELETE' })
-    set((state) => ({
-      sessoes: state.sessoes.filter((s) => !sameId(s.id, id)),
+    await getJson(`${API}/sessoes/${id}`, { method: 'DELETE' })
+
+    set((s) => ({
+      sessoes: s.sessoes.filter((x) => x._id !== id),
     }))
   },
 
-  // ─── METAS ───────────────────────────────────────────────────────
-  addMeta: async (novaMeta) => {
+  // ── Metas ────────────────────────────────
+  addMeta: async (nova) => {
     const saved = await getJson(`${API}/metas`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(novaMeta),
+      body: JSON.stringify(nova),
     })
-    set((state) => ({ metas: [...state.metas, saved] }))
+
+    set((s) => ({ metas: [...s.metas, saved] }))
+    return saved
   },
 
-  updateMeta: async (id, payload) => {
+  updateMeta: async (id, dados) => {
     const saved = await getJson(`${API}/metas/${id}`, {
-      method: 'PATCH',
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(dados),
     })
-    set((state) => ({
-      metas: state.metas.map((m) => (sameId(m.id, id) ? saved : m)),
+
+    set((s) => ({
+      metas: s.metas.map((meta) => (meta._id === id ? saved : meta)),
     }))
+
+    return saved
   },
 
   deleteMeta: async (id) => {
-    await fetch(`${API}/metas/${id}`, { method: 'DELETE' })
-    set((state) => ({
-      metas: state.metas.filter((m) => !sameId(m.id, id)),
+    await getJson(`${API}/metas/${id}`, { method: 'DELETE' })
+
+    set((s) => ({
+      metas: s.metas.filter((x) => x._id !== id),
     }))
   },
 }))

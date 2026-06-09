@@ -1,4 +1,3 @@
-// src/pages/TelaRelatorio.jsx
 import useStore from '../store/useStore'
 
 function calcMin(a, b) {
@@ -12,7 +11,7 @@ function fmtDur(m) {
   if (m <= 0) return '—'
   const h = Math.floor(m / 60)
   const r = m % 60
-  return (h ? `${h}h ` : '') + (r ? `${r}min` : '')
+  return (h ? h + 'h ' : '') + (r ? r + 'min' : '')
 }
 
 function fdate(d) {
@@ -26,133 +25,125 @@ export default function TelaRelatorio() {
 
   function horasEst(mid) {
     return sessoes
-      .filter((s) => String(s.materiaId) === String(mid))
+      .filter((s) => s.materiaId === mid)
       .reduce((a, s) => a + Math.max(0, calcMin(s.inicio, s.fim) / 60), 0)
   }
 
-  const totalH = sessoes.reduce(
-    (a, s) => a + Math.max(0, calcMin(s.inicio, s.fim) / 60),
-    0
-  )
-
+  const totalH = sessoes.reduce((a, s) => a + Math.max(0, calcMin(s.inicio, s.fim) / 60), 0)
   const ating = metas.filter((mt) => horasEst(mt.materiaId) >= mt.horas).length
-
   const pctGeral = metas.length
     ? Math.round(
-        metas.reduce(
-          (a, mt) =>
-            a + Math.min(100, (horasEst(mt.materiaId) / mt.horas) * 100),
-          0
-        ) / metas.length
+        metas.reduce((a, mt) => a + Math.min(100, (horasEst(mt.materiaId) / mt.horas) * 100), 0) / metas.length
       )
     : 0
 
-  const cards = materias.map((mat) => {
-    const meta = metas.find((mt) => String(mt.materiaId) === String(mat.id))
-    const he = horasEst(mat.id)
-    const mh = meta?.horas || 0
-    const p = mh ? Math.min(100, Math.round((he / mh) * 100)) : 0
-
-    let statusClass = 'status-low'
-    let statusText = 'Abaixo'
-
-    if (p >= 100) {
-      statusClass = 'status-ok'
-      statusText = 'Atingida'
-    } else if (p >= 50) {
-      statusClass = 'status-mid'
-      statusText = 'Em andamento'
-    }
-
-    return { mat, meta, he, mh, p, statusClass, statusText }
-  })
-
-  const recentes = [...sessoes]
-    .map((s) => ({
-      ...s,
-      materia: materias.find((m) => String(m.id) === String(s.materiaId)),
-    }))
-    .filter((s) => s.materia)
-    .reverse()
-    .slice(0, 5)
+  const semDados = materias.length === 0
 
   return (
     <>
-      <nav className="navbar" style={{ justifyContent: 'space-between' }}>
-        <span className="navbar-title">📊 Meu Progresso</span>
+      <nav className="navbar">
+        <span className="navbar-title">📊 Progresso</span>
       </nav>
 
       <div className="pad">
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-kpi">{totalH.toFixed(1)}h</div>
-            <div className="stat-label">Total estudado</div>
+        {semDados ? (
+          <div className="empty-state" style={{ marginTop: 40 }}>
+            <div className="empty-icon">📊</div>
+            <p>Nada por aqui ainda.<br />Cadastre matérias, crie metas e registre sessões para ver seu progresso!</p>
           </div>
+        ) : (
+          <>
+            <div className="hero">
+              <div className="hero-grid">
+                <div style={{ textAlign: 'center' }}>
+                  <div className="hero-val">{totalH.toFixed(0)}h</div>
+                  <div className="hero-lbl">Total estudado</div>
+                </div>
 
-          <div className="stat-card">
-            <div className="stat-kpi">{ating}/{metas.length}</div>
-            <div className="stat-label">Metas atingidas</div>
-          </div>
+                <div className="hero-div" />
 
-          <div className="stat-card">
-            <div className="stat-kpi">{pctGeral}%</div>
-            <div className="stat-label">Progresso geral</div>
-          </div>
-        </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div className="hero-val">{ating}/{metas.length}</div>
+                  <div className="hero-lbl">Metas atingidas</div>
+                </div>
 
-        <div className="sec-title">Progresso por Matéria</div>
+                <div className="hero-div" />
 
-        <div className="progress-grid">
-          {cards.map(({ mat, mh, he, p, statusClass, statusText }) => (
-            <div key={mat.id} className="progress-card-modern">
-              <div className="progress-head">
-                <div>
-                  <div className="progress-name">{mat.nome}</div>
-                  <div className="progress-sub">
-                    {mh ? `Meta: ${mh}h/${mat.periodo || 'Semana'}` : 'Sem meta definida'}
+                <div style={{ textAlign: 'center' }}>
+                  <div className="hero-val">{pctGeral}%</div>
+                  <div className="hero-lbl">Progresso geral</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="sec-title">Progresso por Matéria</div>
+
+            {materias.map((mat) => {
+              const meta = metas.find((mt) => mt.materiaId === mat._id)
+              const he = horasEst(mat._id)
+              const mh = meta?.horas || 0
+              const p = mh ? Math.min(100, Math.round((he / mh) * 100)) : 0
+              const sc = p >= 100 ? 'ok' : p >= 50 ? 'mid' : 'low'
+              const label = { ok: '✅ Atingida', mid: 'Em andamento', low: '⚠️ Abaixo' }[sc]
+
+              return (
+                <div key={mat._id} className="prog-card" style={{ borderColor: mat.cor }}>
+                  <div className="flex-between mb8">
+                    <span className="fw800">{mat.nome}</span>
+                    <div style={{ textAlign: 'right' }}>
+                      <div className="fw900 text-primary">{he.toFixed(1)}h</div>
+                      {mh > 0 && <div className="text-xs text-muted">meta: {mh}h</div>}
+                    </div>
                   </div>
+
+                  {mh > 0 ? (
+                    <>
+                      <div className="prog-track">
+                        <div className="prog-fill" style={{ width: p + '%', background: mat.cor }} />
+                      </div>
+
+                      <div className="flex-between">
+                        <small className="text-muted">{p}% concluído</small>
+                        <span className={`badge badge-${sc}`}>{label}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-xs text-muted">Sem meta definida para esta matéria.</div>
+                  )}
                 </div>
+              )
+            })}
 
-                <div className="progress-hours">{he.toFixed(1)}h</div>
+            <div className="sec-title" style={{ marginTop: 4 }}>Últimas Sessões</div>
+
+            {sessoes.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon">⏱️</div>
+                <p>Nenhuma sessão registrada ainda.</p>
               </div>
+            ) : (
+              <div className="card">
+                {[...sessoes].reverse().slice(0, 5).map((s) => {
+                  const m = materias.find((x) => x._id === s.materiaId)
+                  if (!m) return null
 
-              <div className="progress-bar">
-                <div
-                  className="progress-bar-fill"
-                  style={{ width: `${p}%`, background: mat.cor }}
-                />
+                  return (
+                    <div key={s._id} className="sess-item">
+                      <div className="dot" style={{ background: m.cor }} />
+                      <div style={{ flex: 1 }}>
+                        <div className="fw700 text-sm">{m.nome}</div>
+                        <div className="text-xs text-muted">{fdate(s.data)} · {s.inicio}–{s.fim}</div>
+                      </div>
+                      <div className="fw800 text-primary text-sm">
+                        {fmtDur(calcMin(s.inicio, s.fim))}
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
-
-              <div className="progress-foot">
-                <span>{p}% concluído</span>
-                <span className={`status-pill ${statusClass}`}>{statusText}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="sec-title" style={{ marginTop: 18 }}>Últimas Sessões</div>
-
-        <div className="recent-card">
-          {recentes.map((s) => (
-            <div key={s.id} className="recent-row">
-              <div className="dot" style={{ background: s.materia.cor }} />
-              <div style={{ flex: 1 }}>
-                <div className="fw700 text-sm">{s.materia.nome}</div>
-                <div className="text-xs text-muted">
-                  {fdate(s.data)} · {s.inicio}–{s.fim}
-                </div>
-              </div>
-              <div className="fw800 text-primary text-sm">
-                {fmtDur(calcMin(s.inicio, s.fim))}
-              </div>
-            </div>
-          ))}
-
-          {recentes.length === 0 && (
-            <div className="empty-soft">Nenhuma sessão registrada ainda.</div>
-          )}
-        </div>
+            )}
+          </>
+        )}
       </div>
     </>
   )

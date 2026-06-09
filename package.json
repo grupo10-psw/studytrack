@@ -26,5 +26,10 @@
     "globals": "^17.4.0",
     "json-server": "^1.0.0-beta.15",
     "vite": "^8.0.4"
-  }
+  },
+  "scripts": {
+  "dev":    "vite",
+  "server": "cd backend && node --watch server.js",
+  "build":  "vite build"
+}
 }
